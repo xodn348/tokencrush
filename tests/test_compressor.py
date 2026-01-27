@@ -50,7 +50,7 @@ class TestTokenCompressor:
         """Test GPU flag is passed correctly."""
         from tokencrush.compressor import TokenCompressor
         
-        with patch('tokencrush.compressor.PromptCompressor') as mock_pc:
+        with patch('llmlingua.PromptCompressor') as mock_pc:
             TokenCompressor(use_gpu=True)
             assert mock_pc.call_args[1].get('device_map') in ['cuda', 'auto']
             
@@ -62,7 +62,7 @@ class TestTokenCompressor:
         """Test compression handles empty text."""
         from tokencrush.compressor import TokenCompressor
         
-        with patch('tokencrush.compressor.PromptCompressor'):
+        with patch('llmlingua.PromptCompressor'):
             compressor = TokenCompressor()
             result = compressor.compress("", rate=0.5)
             
