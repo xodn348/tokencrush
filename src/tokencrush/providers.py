@@ -1,17 +1,18 @@
 """Multi-provider LLM wrapper using LiteLLM."""
 
-from typing import List
+from typing import List, cast, Any
 from litellm import completion
 
 
 class ProviderError(Exception):
     """Exception raised when LLM provider call fails."""
+
     pass
 
 
 class LLMProvider:
     """Unified interface for multiple LLM providers via LiteLLM."""
-    
+
     MODEL_ALIASES = {
         "gpt-4": "gpt-4",
         "gpt-4-turbo": "gpt-4-turbo",
@@ -22,28 +23,31 @@ class LLMProvider:
         "gemini-1.5-pro": "gemini/gemini-1.5-pro",
         "gemini-1.5-flash": "gemini/gemini-1.5-flash",
     }
-    
+
     def __init__(self):
         """Initialize the LLM provider."""
         pass
-    
+
     def get_model_name(self, model: str) -> str:
         """Get the full LiteLLM model name from an alias."""
         return self.MODEL_ALIASES.get(model, model)
-    
+
     def chat(self, prompt: str, model: str = "gpt-4") -> str:
         """Send a chat completion request."""
         full_model = self.get_model_name(model)
-        
+
         try:
-            response = completion(
+            response: Any = completion(
                 model=full_model,
                 messages=[{"role": "user", "content": prompt}],
             )
-            return response.choices[0].message.content
+            choices: Any = response.choices  # noqa
+            message: Any = choices[0].message  # noqa
+            content: str = message.content  # noqa
+            return content
         except Exception as e:
             raise ProviderError(f"Failed to get response from {model}: {e}") from e
-    
+
     @classmethod
     def list_models(cls) -> List[str]:
         """List all supported model aliases."""
