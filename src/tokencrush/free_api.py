@@ -40,13 +40,13 @@ class FreeAPIManager:
         "gemini": {
             "limit_rpm": 15,  # requests per minute
             "limit_rpd": 1000,  # requests per day
-            "model": "gemini/gemini-1.5-flash",
+            "model": "gemini/gemini-2.0-flash-exp",
             "api_key_env": "GOOGLE_API_KEY",
         },
         "groq": {
             "limit_rpm": 30,
             "limit_rpd": None,  # No daily limit
-            "model": "groq/llama-3.1-70b-versatile",
+            "model": "groq/llama-3.3-70b-versatile",
             "api_key_env": "GROQ_API_KEY",
         },
         "deepseek": {

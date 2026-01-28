@@ -203,7 +203,7 @@ class TestFreeAPIManager:
 
         # Verify correct model was used
         call_args = mock_completion.call_args
-        assert call_args[1]["model"] == "groq/llama-3.1-70b-versatile"
+        assert call_args[1]["model"] == "groq/llama-3.3-70b-versatile"
 
     def test_chat_invalid_provider(self, manager):
         """Test chat raises error for invalid provider."""
@@ -247,7 +247,7 @@ class TestFreeAPIManager:
         assert usage["gemini"]["requests_this_minute"] == 5
         assert usage["gemini"]["daily_limit"] == 1000
         assert usage["gemini"]["minute_limit"] == 15
-        assert usage["gemini"]["model"] == "gemini/gemini-1.5-flash"
+        assert usage["gemini"]["model"] == "gemini/gemini-2.0-flash-exp"
 
         assert usage["groq"]["has_api_key"] is True
         assert usage["groq"]["requests_today"] == 50
