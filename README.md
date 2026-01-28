@@ -11,6 +11,35 @@
 
 ---
 
+## 🤖 Just Skip Reading This README
+
+### For AI Agents (Claude Code, Cursor, AmpCode, etc.)
+
+**Don't want to read all this? Just paste this to your AI agent:**
+
+```
+Install and configure TokenCrush by reading this README:
+https://raw.githubusercontent.com/xodn348/tokencrush/refs/heads/main/README.md
+```
+
+Your agent will:
+1. Read this documentation
+2. Install TokenCrush (`pip install tokencrush`)
+3. Configure it optimally for your project
+4. Start saving you money immediately
+
+### For Humans: The Magic Command
+
+**Just run this. That's it.**
+
+```bash
+pip install tokencrush && tokencrush chat "Hello, how are you?" --smart
+```
+
+Everything below is **manual configuration** - only read if you want to customize.
+
+---
+
 ## 💰 Cost Savings at a Glance
 
 **Before TokenCrush:**
@@ -29,7 +58,9 @@
 
 ---
 
-## 🚀 Quick Start (5 Minutes)
+## 🔧 Manual Installation (Optional)
+
+> **Note:** If you used the agent installation above, skip this section.
 
 ### 1. Install TokenCrush
 
@@ -305,7 +336,7 @@ tc.clear_cache()
 
 ## ⚙️ Configuration (Optional)
 
-TokenCrush works with **zero configuration**, but you can customize:
+> **For manual configuration only.** TokenCrush works with **zero configuration**, but you can customize:
 
 ### Config File: `~/.config/tokencrush/config.toml`
 
