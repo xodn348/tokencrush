@@ -1,7 +1,7 @@
 [project]
 name = "tokencrush"
-version = "0.1.0"
-description = "LLM token optimization CLI - compress prompts, save costs"
+version = "2.0.0"
+description = "100% FREE Open Source LLM Optimizer - Reduce API costs by 95-100% with semantic caching, local LLM, and free API routing"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
