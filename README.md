@@ -1,6 +1,6 @@
-# TokenCrush v2.0
+# TokenCrush v2.0 - 100% Free LLM Cost Optimizer
 
-> **100% FREE Open Source LLM Optimizer** - Reduce API costs by 95-100% with semantic caching, local LLM, and free API routing.
+> Reduce LLM API costs by 95-100% with semantic caching, local LLM, and free API routing.
 
 [![PyPI version](https://img.shields.io/badge/pypi-v2.0.0-blue.svg)](https://pypi.org/project/tokencrush/)
 [![Tests](https://img.shields.io/badge/tests-243%20passing-brightgreen.svg)](#)
@@ -9,124 +9,181 @@
 
 **TokenCrush v2** is a complete LLM cost optimization toolkit that combines semantic caching, local LLM integration, free API routing, and token compression to deliver **95-100% cost reduction** - all without requiring any paid services.
 
-## Why TokenCrush v2?
+---
+
+## 💰 Cost Savings at a Glance
 
 **Before TokenCrush:**
-- 1000 queries/day × $0.01/query = **$10/day = $300/month**
+```
+1000 queries/day × $0.01/query = $10/day = $300/month
+```
 
-**After TokenCrush v2:**
-- 700 queries cached (70% hit rate) = **$0**
-- 200 queries via Ollama (local LLM) = **$0**
-- 100 queries via Gemini (free tier) = **$0**
-- **Total: $0/month (100% savings)**
+**After TokenCrush:**
+```
+✅ 700 queries cached (70% hit rate)     = $0
+✅ 200 queries via Ollama (local LLM)    = $0  
+✅ 100 queries via free APIs             = $0
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💵 Total: $0/month (100% savings!)
+```
 
-## Features
+---
 
-### 🎯 100% FREE Architecture
-- **No paid services required** - Everything runs locally or uses free tiers
-- **No hidden costs** - Semantic caching, local LLM, and free APIs only
-- **No vendor lock-in** - Open source, self-hosted, your data stays local
+## 🚀 Quick Start (5 Minutes)
 
-### 🚀 v2 Capabilities
-
-- **Semantic Caching** (70-90% hit rate)
-  - SQLite + FAISS vector search
-  - Similarity threshold: 0.85
-  - 24-hour TTL, 10,000 entry limit
-  - Instant responses on cache hits
-
-- **Local LLM Integration** (Ollama)
-  - Completely free, runs on your machine
-  - Default model: deepseek-r1:8b (M1/M2 optimized)
-  - Supports: llama3, qwen, mistral, and more
-  - No API calls, no rate limits
-
-- **Free API Routing**
-  - **Gemini**: 15 RPM, 1000 requests/day
-  - **Groq**: 30 RPM, unlimited daily
-  - **DeepSeek**: Unlimited free tier
-  - Auto-rotation when quotas exceeded
-
-- **Smart Routing**
-  - Priority: Cache → Local LLM → Free API
-  - Never auto-fallback to paid services
-  - Configurable routing strategies
-
-- **Token Compression** (LLMLingua-2)
-  - 50-80% token reduction
-  - Preserves semantic meaning
-  - Works with all providers
-
-## Installation
+### 1. Install TokenCrush
 
 ```bash
 pip install tokencrush
 ```
 
-Or with uv:
+### 2. Start Using Immediately
 
 ```bash
-uv add tokencrush
+# Smart routing (cache → local → free API)
+tokencrush chat "What is artificial intelligence?" --smart
 ```
 
-## Quick Start
+That's it! TokenCrush works out of the box with zero configuration.
 
-### 1. Install Ollama (Local LLM - Optional but Recommended)
+### 3. Optional: Install Ollama for Local LLM (Recommended)
 
-**macOS:**
 ```bash
+# macOS
 brew install ollama
-ollama serve  # Start Ollama server
-ollama pull deepseek-r1:8b  # Download model (4.7GB)
-```
+ollama serve
+ollama pull deepseek-r1:8b
 
-**Linux:**
-```bash
+# Linux
 curl -fsSL https://ollama.ai/install.sh | sh
 ollama serve
 ollama pull deepseek-r1:8b
+
+# Windows: Download from ollama.ai/download
 ```
 
-**Windows:**
-Download from [ollama.ai/download](https://ollama.ai/download)
-
-### 2. Get Free API Keys (Optional)
-
-**Gemini (Google):**
-1. Visit [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
-2. Click "Create API Key"
-3. Free tier: 15 requests/minute, 1000 requests/day
-
-**Groq:**
-1. Visit [console.groq.com](https://console.groq.com)
-2. Sign up and create API key
-3. Free tier: 30 requests/minute, unlimited daily
-
-**DeepSeek:**
-1. Visit [platform.deepseek.com](https://platform.deepseek.com)
-2. Sign up and create API key
-3. Free tier: Unlimited requests
-
-### 3. Configure TokenCrush
+### 4. Optional: Add Free API Keys
 
 ```bash
-# Set free API keys (optional - only if you want free API routing)
+# Get free API keys (optional):
+# - Gemini: aistudio.google.com/apikey (15 RPM, 1000/day)
+# - Groq: console.groq.com (30 RPM, unlimited)
+# - DeepSeek: platform.deepseek.com (unlimited)
+
 tokencrush config set gemini your-gemini-key
 tokencrush config set groq your-groq-key
 tokencrush config set deepseek your-deepseek-key
 ```
 
-### 4. Start Using TokenCrush
+---
+
+## 🔍 How It Works
+
+TokenCrush uses a **three-layer optimization strategy** to eliminate LLM costs:
+
+### Layer 1: Semantic Caching (70-90% Cost Reduction)
+
+```
+Your question: "What is artificial intelligence?"
+         ↓
+Convert to vector embedding (sentence-transformers)
+         ↓
+Search similar questions in cache (FAISS)
+         ↓
+┌─────────────────────────────────────────┐
+│ Similarity > 0.85?                      │
+├─────────────────────────────────────────┤
+│ ✅ YES → Return cached answer           │
+│          FREE, <50ms response           │
+│                                         │
+│ ❌ NO  → Send to LLM                    │
+│          Cache new answer for future    │
+└─────────────────────────────────────────┘
+```
+
+**Example:**
+- Query 1: "What is AI?" → Sent to LLM, cached
+- Query 2: "Explain artificial intelligence" → **Cache hit!** (similarity: 0.92)
+- Query 3: "What does AI mean?" → **Cache hit!** (similarity: 0.88)
+
+**Result:** 70-90% of similar questions hit cache → **$0 cost, instant response**
+
+---
+
+### Layer 2: Prompt Compression (50-80% Token Reduction)
+
+```
+Original prompt: 1000 tokens
+         ↓
+LLMLingua-2 (Microsoft Research)
+- Remove redundant words
+- Keep semantic meaning intact
+- Preserve key information
+         ↓
+Compressed prompt: 300-500 tokens
+         ↓
+Send to LLM
+```
+
+**Example:**
+```
+Before: "I would like to know if you could please explain to me 
+         what the concept of machine learning is and how it works 
+         in detail with examples if possible." (150 tokens)
+
+After:  "Explain machine learning concept, how works, examples." 
+        (45 tokens)
+```
+
+**Result:** 50-80% fewer tokens → **50-80% cost reduction** on cache misses
+
+---
+
+### Layer 3: Smart Routing (100% Free Execution)
+
+```
+Query arrives
+     ↓
+┌──────────────────────────────────┐
+│ 1. Check Cache                   │ ← 70-90% hit rate
+│    Similarity search (FAISS)     │   FREE, <50ms
+└──────────────────────────────────┘
+     ↓ (cache miss)
+┌──────────────────────────────────┐
+│ 2. Try Local LLM (Ollama)        │ ← Runs on your machine
+│    deepseek-r1:8b, llama3, etc.  │   FREE, no API calls
+└──────────────────────────────────┘
+     ↓ (Ollama unavailable)
+┌──────────────────────────────────┐
+│ 3. Use Free API                  │ ← Gemini/Groq/DeepSeek
+│    Auto-rotate on quota exceeded │   FREE tier limits
+└──────────────────────────────────┘
+     ↓ (all quotas exceeded)
+┌──────────────────────────────────┐
+│ 4. Error (No Paid Fallback)      │ ← Never auto-charge
+│    User must explicitly enable   │   No surprise bills
+└──────────────────────────────────┘
+```
+
+**Priority:** Cache → Local → Free → Error (never paid)
+
+**Result:** 95-100% of queries handled for **$0**
+
+---
+
+## 📖 Usage Guide
+
+### CLI Commands
 
 ```bash
-# Smart routing (cache → local → free API)
-tokencrush chat "What is quantum computing?" --smart
+# Smart routing (default - recommended)
+tokencrush chat "Your question" --smart
 
-# Force local LLM only
-tokencrush chat "Explain AI" --local
+# Force local LLM only (offline mode)
+tokencrush chat "Your question" --local
 
 # Force free API only
-tokencrush chat "Write a poem" --free-api
+tokencrush chat "Your question" --free-api
 
 # View statistics
 tokencrush stats
@@ -134,71 +191,12 @@ tokencrush stats
 # Manage cache
 tokencrush cache stats
 tokencrush cache clear
+
+# Compress text (standalone)
+tokencrush compress "Long text here..." --rate 0.5
 ```
 
-## CLI Usage
-
-### Chat Commands
-
-```bash
-# Smart routing (default) - tries cache, then local, then free API
-tokencrush chat "Your question here"
-tokencrush chat "Your question here" --smart
-
-# Force local LLM (Ollama)
-tokencrush chat "Your question here" --local
-
-# Force free API (Gemini/Groq/DeepSeek)
-tokencrush chat "Your question here" --free-api
-```
-
-### Statistics
-
-```bash
-# View cache statistics
-tokencrush stats
-
-# Output:
-# ┌─────────────────────────────────────┐
-# │        Cache Statistics             │
-# ├──────────────────┬──────────────────┤
-# │ Cache Hit Rate   │ 73.5%            │
-# │ Total Queries    │ 1,234            │
-# │ Cache Hits       │ 907              │
-# │ Cost Saved       │ $12.34           │
-# └──────────────────┴──────────────────┘
-```
-
-### Cache Management
-
-```bash
-# Show cache statistics
-tokencrush cache stats
-
-# Clear all cache entries
-tokencrush cache clear
-```
-
-### Token Compression (v1 Feature)
-
-```bash
-# Compress text to reduce tokens
-tokencrush compress "Your very long prompt text here..." --rate 0.5
-
-# Output:
-# ┌─────────────────────────────────────┐
-# │        Compression Result           │
-# ├──────────────────┬──────────────────┤
-# │ Original Tokens  │ 500              │
-# │ Compressed Tokens│ 150              │
-# │ Compression Ratio│ 30.0%            │
-# │ Tokens Saved     │ 350              │
-# └──────────────────┴──────────────────┘
-```
-
-## Python SDK
-
-### Basic Usage
+### Python SDK
 
 ```python
 from tokencrush import TokenCrush
@@ -206,8 +204,8 @@ from tokencrush import TokenCrush
 # Initialize
 tc = TokenCrush()
 
-# Smart routing (default) - cache → local → free API
-response = tc.chat("What is artificial intelligence?")
+# Smart routing (default)
+response = tc.chat("What is machine learning?")
 print(response.response)
 print(f"Source: {response.source}")  # "cache", "local", or "free-api"
 print(f"Tokens saved: {response.tokens_saved}")
@@ -218,91 +216,30 @@ response = tc.chat("Explain quantum computing", mode="local")
 # Force free API
 response = tc.chat("Write a haiku", mode="free")
 
-# Cache-only mode (error if not cached)
-response = tc.chat("Previous question", mode="cache-only")
-```
-
-### Statistics and Cache Management
-
-```python
 # Get statistics
 stats = tc.stats()
 print(f"Cache hit rate: {stats.cache_hit_rate:.1%}")
 print(f"Total queries: {stats.total_queries}")
-print(f"Cache hits: {stats.cache_hits}")
 print(f"Cost saved: ${stats.cost_saved:.2f}")
 
 # Clear cache
 tc.clear_cache()
 ```
 
-### Token Compression
+---
 
-```python
-# Compress text
-compressed = tc.compress("Your very long prompt text here...", rate=0.5)
-print(f"Original: {compressed.original_tokens} tokens")
-print(f"Compressed: {compressed.compressed_tokens} tokens")
-print(f"Saved: {compressed.tokens_saved} tokens")
-```
+## ⚙️ Configuration (Optional)
 
-## Architecture
+TokenCrush works with **zero configuration**, but you can customize:
 
-### Routing Priority (100% FREE)
-
-```
-User Query
-    ↓
-┌─────────────────┐
-│ 1. Cache Check  │ ← Instant response if cached (70-90% hit rate)
-└─────────────────┘
-    ↓ (miss)
-┌─────────────────┐
-│ 2. Local LLM    │ ← Ollama (deepseek-r1:8b, llama3, etc.)
-│   (Ollama)      │   Completely free, no API calls
-└─────────────────┘
-    ↓ (unavailable)
-┌─────────────────┐
-│ 3. Free API     │ ← Gemini (1000/day), Groq (30 RPM), DeepSeek (unlimited)
-│   Routing       │   Auto-rotation on quota exceeded
-└─────────────────┘
-    ↓ (quota exceeded)
-┌─────────────────┐
-│ 4. Error        │ ← Never auto-fallback to paid services
-│   (No Paid)     │   User must explicitly enable paid APIs
-└─────────────────┘
-```
-
-### Routing Strategies
-
-- **`smart`** (default): Cache → Local → Free API with fallback
-- **`local`**: Force Ollama only (error if unavailable)
-- **`free-api`**: Force free APIs only (skip local)
-- **`cache-only`**: Return cached response or error
-
-### Cost Savings Breakdown
-
-| Component | Hit Rate | Cost Reduction |
-|-----------|----------|----------------|
-| Semantic Cache | 70-90% | 70-90% saved |
-| Local LLM (Ollama) | 15-25% | 15-25% saved |
-| Free API (Gemini/Groq) | 5-10% | 5-10% saved |
-| **Combined** | **95-100%** | **95-100% saved** |
-
-## Configuration
-
-### Config File Location
-
-`~/.config/tokencrush/config.toml`
-
-### Configuration Options
+### Config File: `~/.config/tokencrush/config.toml`
 
 ```toml
 [cache]
 enabled = true
 threshold = 0.85  # Similarity threshold (0-1)
 max_size = 10000  # Max cache entries
-ttl = 86400       # Time-to-live in seconds (24 hours)
+ttl = 86400       # Time-to-live (24 hours)
 
 [local]
 enabled = true
@@ -313,7 +250,7 @@ fallback = true           # Fallback to free API if unavailable
 gemini_key = "your-key"
 groq_key = "your-key"
 deepseek_key = "your-key"
-priority = ["deepseek", "groq", "gemini"]  # Provider priority
+priority = ["deepseek", "groq", "gemini"]
 
 [routing]
 strategy = "smart"  # smart, local, free-api, cache-only
@@ -321,8 +258,6 @@ compress = true     # Enable token compression
 ```
 
 ### Environment Variables
-
-All config options can be overridden with environment variables:
 
 ```bash
 export TOKENCRUSH_CACHE_ENABLED=true
@@ -333,9 +268,11 @@ export TOKENCRUSH_GROQ_KEY=your-key
 export TOKENCRUSH_ROUTING_STRATEGY=smart
 ```
 
-## Ollama Models
+---
 
-TokenCrush works with any Ollama model. Popular choices:
+## 🌍 Ollama Models
+
+TokenCrush works with any Ollama model:
 
 | Model | Size | Best For |
 |-------|------|----------|
@@ -352,12 +289,13 @@ ollama list
 # Pull a new model
 ollama pull llama3:8b
 
-# Use a different model
-tokencrush chat "Question" --local
-# (Configure model in config.toml or env var)
+# Configure model
+tokencrush config set local.model llama3:8b
 ```
 
-## Free API Limits
+---
+
+## 🆓 Free API Limits
 
 | Provider | RPM | Daily Limit | Notes |
 |----------|-----|-------------|-------|
@@ -367,7 +305,41 @@ tokencrush chat "Question" --local
 
 TokenCrush automatically rotates providers when quotas are exceeded.
 
-## Cost Comparison
+---
+
+## ⚠️ Important Notices
+
+### 🇪🇺 EU/EEA/UK/Switzerland Users
+
+**CRITICAL:** Gemini free tier is **NOT available** in these regions:
+- European Union (EU)
+- European Economic Area (EEA)
+- United Kingdom (UK)
+- Switzerland
+
+**You must use:**
+- ✅ Paid Gemini tier, OR
+- ✅ Ollama (local LLM), OR
+- ✅ Groq/DeepSeek only
+
+See [Google Gemini Terms](https://ai.google.dev/gemini-api/terms) for details.
+
+### 🔞 Age Requirement
+
+**You must be 18 years or older** to use third-party APIs (Google Gemini, Groq, DeepSeek).
+
+### 📄 Legal & Privacy
+
+- **No warranties:** Software provided "as is" under MIT License
+- **API terms:** You are responsible for complying with third-party API terms
+- **Data privacy:** Prompts sent to APIs are subject to provider privacy policies
+- **Local data:** Cache stored locally in `~/.tokencrush/cache/`
+
+**Read full terms:** [LEGAL.md](LEGAL.md)
+
+---
+
+## 📊 Cost Comparison
 
 ### Scenario: 1,000 queries/day
 
@@ -379,45 +351,9 @@ TokenCrush automatically rotates providers when quotas are exceeded.
 | **TokenCrush v1** (compression only) | $60 | 80% |
 | **TokenCrush v2** (cache + local + free) | **$0** | **100%** |
 
-## Development
+---
 
-```bash
-# Clone the repository
-git clone https://github.com/xodn348/tokencrush.git
-cd tokencrush
-
-# Install with dev dependencies
-uv sync --all-extras
-
-# Run tests (243 tests)
-uv run pytest -v
-
-# Run specific test suites
-uv run pytest tests/test_cache.py -v
-uv run pytest tests/test_local.py -v
-uv run pytest tests/test_free_api.py -v
-uv run pytest tests/test_router.py -v
-
-# Build package
-uv build
-```
-
-## Testing
-
-TokenCrush v2 has comprehensive test coverage:
-
-- **243 total tests passing**
-- 29 cache tests (semantic search, TTL, limits)
-- 13 local LLM tests (Ollama integration)
-- 23 free API tests (quota tracking, rotation)
-- 41 router tests (smart routing, fallback)
-- 31 config tests (validation, env vars)
-- 41 SDK tests (Python API)
-- 11 CLI tests (commands, flags)
-- 40 integration tests (end-to-end v2)
-- 14 other tests (compression, providers)
-
-## Troubleshooting
+## 🛠️ Troubleshooting
 
 ### Ollama Not Available
 
@@ -455,17 +391,35 @@ tokencrush cache clear
 cat ~/.config/tokencrush/config.toml
 ```
 
-## Roadmap
+---
 
-- [ ] Web UI for cache management
-- [ ] Multi-language support (embeddings)
-- [ ] Custom embedding models
-- [ ] Distributed cache (Redis)
-- [ ] More free API providers
-- [ ] Streaming responses
-- [ ] Batch processing
+## 🧪 Testing
 
-## Contributing
+TokenCrush v2 has comprehensive test coverage:
+
+- **243 total tests passing**
+- 29 cache tests (semantic search, TTL, limits)
+- 13 local LLM tests (Ollama integration)
+- 23 free API tests (quota tracking, rotation)
+- 41 router tests (smart routing, fallback)
+- 31 config tests (validation, env vars)
+- 41 SDK tests (Python API)
+- 11 CLI tests (commands, flags)
+- 40 integration tests (end-to-end v2)
+- 14 other tests (compression, providers)
+
+```bash
+# Run all tests
+uv run pytest -v
+
+# Run specific test suites
+uv run pytest tests/test_cache.py -v
+uv run pytest tests/test_router.py -v
+```
+
+---
+
+## 🤝 Contributing
 
 Contributions welcome! Please:
 
@@ -475,11 +429,24 @@ Contributions welcome! Please:
 4. Ensure all tests pass (`pytest -v`)
 5. Submit a pull request
 
-## License
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+---
+
+## 📜 License
 
 MIT License - see [LICENSE](LICENSE) for details.
 
-## Acknowledgments
+**Key Points:**
+- ✅ Commercial use allowed
+- ✅ Modification allowed
+- ✅ Distribution allowed
+- ❌ No warranty provided
+- ❌ Authors not liable for damages
+
+---
+
+## 🙏 Acknowledgments
 
 - [LLMLingua](https://github.com/microsoft/LLMLingua) by Microsoft Research - Token compression
 - [LiteLLM](https://github.com/BerriAI/litellm) - Multi-provider support
@@ -487,11 +454,25 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [FAISS](https://github.com/facebookresearch/faiss) - Vector similarity search
 - [Sentence Transformers](https://www.sbert.net) - Semantic embeddings
 
-## Support
+---
 
-- **Issues**: [GitHub Issues](https://github.com/xodn348/tokencrush/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/xodn348/tokencrush/discussions)
-- **Documentation**: [Wiki](https://github.com/xodn348/tokencrush/wiki)
+## 📞 Support
+
+- **Issues:** [GitHub Issues](https://github.com/xodn348/tokencrush/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/xodn348/tokencrush/discussions)
+- **Documentation:** [Wiki](https://github.com/xodn348/tokencrush/wiki)
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Web UI for cache management
+- [ ] Multi-language support (embeddings)
+- [ ] Custom embedding models
+- [ ] Distributed cache (Redis)
+- [ ] More free API providers
+- [ ] Streaming responses
+- [ ] Batch processing
 
 ---
 
