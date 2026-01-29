@@ -10,6 +10,7 @@ ENV_BLOCK = """# >>> tokencrush >>>
 # TokenCrush: Auto-configured LLM proxy
 export OPENAI_API_BASE="http://127.0.0.1:8765/v1"
 export OPENAI_BASE_URL="http://127.0.0.1:8765/v1"
+export ANTHROPIC_BASE_URL="http://127.0.0.1:8765"
 # <<< tokencrush <<<"""
 
 
