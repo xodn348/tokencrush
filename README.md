@@ -1,104 +1,134 @@
-# TokenCrush v2.0 - 100% Free LLM Cost Optimizer
+# TokenCrush
 
-> Reduce LLM API costs by 95-100% with semantic caching, local LLM, and free API routing.
+> **One line. Zero config. 100% free LLM caching.**
 
-[![PyPI version](https://img.shields.io/badge/pypi-v2.0.1-blue.svg)](https://pypi.org/project/tokencrush/)
-[![Tests](https://img.shields.io/badge/tests-243%20passing-brightgreen.svg)](#)
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+```python
+import tokencrush; tokencrush.enable()
+```
 
-**TokenCrush v2** combines semantic caching, local LLM, free API routing, and token compression for **95-100% cost reduction** - all without paid services.
+That's it. All your OpenAI, Anthropic, Gemini, and LiteLLM calls are now cached.
 
 ---
 
-## Zero-Config Mode (NEW!)
+## Install
 
-Just import and enable - all LLM SDK calls are automatically cached:
+```bash
+pip install tokencrush
+```
+
+---
+
+## Usage
+
+### Zero-Config Mode (Recommended)
 
 ```python
 import tokencrush
 tokencrush.enable()
 
-# Now all OpenAI/Anthropic/Gemini/LiteLLM calls are cached!
+# Your existing code works unchanged
 from openai import OpenAI
 client = OpenAI()
-response = client.chat.completions.create(...)  # Automatically cached!
+
+# First call: hits API (~2-6 seconds)
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "What is Python?"}]
+)
+
+# Second identical call: instant from cache (~0.02 seconds)
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "What is Python?"}]
+)
+
+# Disable when done
+tokencrush.disable()
 ```
+
+**Result**: 251x faster. $0 API cost on cached requests.
+
+### Supported SDKs
+
+| SDK | Status |
+|-----|--------|
+| OpenAI | ✅ Supported |
+| Anthropic | ✅ Supported |
+| Google Gemini | ✅ Supported |
+| LiteLLM | ✅ Supported |
 
 ---
 
-## Quick Start
+## How It Works
 
-Copy and paste this to your AI agent (Claude Code, Cursor, AmpCode, etc.):
+1. **Semantic Caching**: Uses FAISS + sentence-transformers to find similar previous queries
+2. **Local Storage**: Cache stored in `~/.cache/tokencrush/` (your machine only)
+3. **Transparent**: Your code doesn't change. Just `enable()` at the start.
+
+---
+
+## CLI
 
 ```bash
-pip install tokencrush
+# Interactive chat with caching
 tokencrush chat "Hello" --smart
+
+# Configure free API providers
 tokencrush config set gemini YOUR_KEY
 tokencrush config set groq YOUR_KEY
 tokencrush config set deepseek YOUR_KEY
+
+# View cache statistics
 tokencrush stats
 ```
 
 ---
 
-## Proxy Server (Beta)
+## Proxy Server
 
-Route ALL your AI agent LLM calls through TokenCrush for automatic caching and compression.
-
-### Usage
+Route all LLM calls through TokenCrush for automatic caching:
 
 ```bash
-# Start proxy server
+# Start proxy
 tokencrush serve --port 8080
 
-# Configure your AI agent to use the proxy
+# Point your tools at the proxy
 export OPENAI_API_BASE=http://localhost:8080/v1
-export OPENAI_API_KEY=your-actual-api-key
 ```
 
-Now all LLM calls from your AI agent (OpenCode, Cursor, Claude Code, etc.) will:
-1. Check semantic cache (instant return if hit = FREE)
-2. Compress prompts (30-50% token reduction via extractive compression)
-3. Forward to your configured LLM API
-4. Cache responses for future similar queries
-
-### Legal Notice
-
-- This proxy forwards requests to YOUR configured LLM API using YOUR API keys
-- You are responsible for compliance with your LLM provider's Terms of Service
-- Cached responses are stored locally on your machine (~/.cache/tokencrush/)
-- No data is sent to third parties
-- TokenCrush does NOT provide API keys or free LLM access
+Works with Claude Code, Cursor, OpenCode, and any OpenAI-compatible client.
 
 ---
 
-## Free API Limits
+## Free API Providers
 
-| Provider | RPM | Daily | Notes |
-|----------|-----|-------|-------|
-| DeepSeek | Unlimited | Unlimited | Best for volume |
-| Groq | 30 | Unlimited | Fast inference |
-| Gemini | 15 | 1,000 | Google |
+| Provider | Rate Limit | Notes |
+|----------|------------|-------|
+| DeepSeek | Unlimited | Best for volume |
+| Groq | 30 RPM | Fast inference |
+| Gemini | 15 RPM | Not available in EU/EEA/UK |
 
 Auto-rotates when quota exceeded.
 
 ---
 
-## Important Notices
+## Requirements
 
-- **EU/EEA/UK/CH:** Gemini blocked (GDPR). Use Ollama, Groq, or DeepSeek.
-- **Age:** 18+ for third-party APIs.
-- **License:** MIT. No warranties. See [LEGAL.md](LEGAL.md).
+- Python 3.10+
+- ~500MB disk for embedding model (downloaded on first use)
+
+---
+
+## License
+
+MIT. See [LICENSE](LICENSE).
 
 ---
 
-## Support
+## Links
 
-[GitHub Issues](https://github.com/xodn348/tokencrush/issues) | [Discussions](https://github.com/xodn348/tokencrush/discussions)
+- [GitHub](https://github.com/xodn348/tokencrush)
+- [Issues](https://github.com/xodn348/tokencrush/issues)
+- [LEGAL.md](LEGAL.md) - Terms and notices
 
-**Acknowledgments:** [LLMLingua](https://github.com/microsoft/LLMLingua), [LiteLLM](https://github.com/BerriAI/litellm), [Ollama](https://ollama.ai), [FAISS](https://github.com/facebookresearch/faiss), [Sentence Transformers](https://www.sbert.net), [oh-my-opencode](https://github.com/travisennis/oh-my-opencode)
-
-**100% FREE. 100% Open Source. MIT License.**
-
----
+**Built with**: [FAISS](https://github.com/facebookresearch/faiss), [Sentence Transformers](https://www.sbert.net), [LiteLLM](https://github.com/BerriAI/litellm)
