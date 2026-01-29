@@ -203,9 +203,12 @@ def install():
             raise typer.Exit(1)
 
     with console.status("Configuring shell profiles..."):
-        profiles = shell_config.install_to_all_profiles()
-        for p in profiles:
-            console.print(f"[green]✓[/green] Configured {p}")
+        all_profiles = shell_config.get_shell_profiles()
+        for p in all_profiles:
+            if shell_config.add_to_profile(p):
+                console.print(f"[green]✓[/green] Configured {p}")
+            else:
+                console.print(f"[yellow]⚠[/yellow] Skipped {p} (permission denied)")
 
     console.print("\n[bold green]Installation complete![/bold green]\n")
     console.print("TokenCrush is now active for:")
@@ -229,9 +232,12 @@ def uninstall():
         console.print("[green]✓[/green] Proxy daemon stopped")
 
     with console.status("Removing shell configuration..."):
-        profiles = shell_config.uninstall_from_all_profiles()
-        for p in profiles:
-            console.print(f"[green]✓[/green] Cleaned {p}")
+        all_profiles = shell_config.get_shell_profiles()
+        for p in all_profiles:
+            if shell_config.remove_from_profile(p):
+                console.print(f"[green]✓[/green] Cleaned {p}")
+            else:
+                console.print(f"[yellow]⚠[/yellow] Skipped {p} (permission denied)")
 
     console.print("\n[bold green]Uninstallation complete![/bold green]")
     console.print("[dim]Restart your terminal to apply changes.[/dim]")

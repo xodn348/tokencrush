@@ -27,43 +27,52 @@ def get_shell_profiles() -> List[Path]:
 
 def is_configured(profile: Path) -> bool:
     """Check if profile already has TokenCrush config."""
-    content = profile.read_text()
-    return MARKER_START in content
+    try:
+        content = profile.read_text()
+        return MARKER_START in content
+    except PermissionError:
+        return False
 
 
 def add_to_profile(profile: Path) -> bool:
     """Add TokenCrush env vars to shell profile."""
-    if is_configured(profile):
-        return True
+    try:
+        if is_configured(profile):
+            return True
 
-    content = profile.read_text()
-    content += f"\n\n{ENV_BLOCK}\n"
-    profile.write_text(content)
-    return True
+        content = profile.read_text()
+        content += f"\n\n{ENV_BLOCK}\n"
+        profile.write_text(content)
+        return True
+    except PermissionError:
+        return False
 
 
 def remove_from_profile(profile: Path) -> bool:
     """Remove TokenCrush config from shell profile."""
-    if not is_configured(profile):
+    try:
+        if not is_configured(profile):
+            return True
+
+        content = profile.read_text()
+        lines = content.split("\n")
+        new_lines = []
+        skip = False
+
+        for line in lines:
+            if MARKER_START in line:
+                skip = True
+                continue
+            if MARKER_END in line:
+                skip = False
+                continue
+            if not skip:
+                new_lines.append(line)
+
+        profile.write_text("\n".join(new_lines))
         return True
-
-    content = profile.read_text()
-    lines = content.split("\n")
-    new_lines = []
-    skip = False
-
-    for line in lines:
-        if MARKER_START in line:
-            skip = True
-            continue
-        if MARKER_END in line:
-            skip = False
-            continue
-        if not skip:
-            new_lines.append(line)
-
-    profile.write_text("\n".join(new_lines))
-    return True
+    except PermissionError:
+        return False
 
 
 def install_to_all_profiles() -> List[Path]:
