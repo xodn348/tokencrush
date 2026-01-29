@@ -15,6 +15,7 @@ dependencies = [
     "faiss-cpu>=1.7.0",
     "sentence-transformers>=2.0.0",
     "httpx>=0.25.0",
+    "wrapt>=1.14.0",
     # Proxy server dependencies
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
