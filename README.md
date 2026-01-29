@@ -11,6 +11,22 @@
 
 ---
 
+## Zero-Config Mode (NEW!)
+
+Just import and enable - all LLM SDK calls are automatically cached:
+
+```python
+import tokencrush
+tokencrush.enable()
+
+# Now all OpenAI/Anthropic/Gemini/LiteLLM calls are cached!
+from openai import OpenAI
+client = OpenAI()
+response = client.chat.completions.create(...)  # Automatically cached!
+```
+
+---
+
 ## Quick Start
 
 Copy and paste this to your AI agent (Claude Code, Cursor, AmpCode, etc.):
