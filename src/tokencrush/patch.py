@@ -10,16 +10,20 @@ if os.environ.get("TOKENCRUSH_DEBUG"):
     logging.basicConfig(level=logging.DEBUG)
 
 _is_enabled: bool = False
+_compress_enabled: bool = False
+_compression_rate: float = 0.5
 _patched_methods: List[Tuple[Any, str, Any]] = []
 
 
-def enable(**kwargs) -> None:
+def enable(compress: bool = False, compression_rate: float = 0.5, **kwargs) -> None:
     """Enable TokenCrush caching and compression for all LLM SDKs."""
-    global _is_enabled
+    global _is_enabled, _compress_enabled, _compression_rate
     if _is_enabled:
         logger.debug("TokenCrush already enabled")
         return
 
+    _compress_enabled = compress
+    _compression_rate = compression_rate
     _is_enabled = True
 
     from tokencrush.interceptors import registry
@@ -55,3 +59,8 @@ def disable() -> None:
 def is_enabled() -> bool:
     """Check if TokenCrush patching is currently enabled."""
     return _is_enabled
+
+
+def get_compression_settings() -> tuple[bool, float]:
+    """Get current compression settings."""
+    return _compress_enabled, _compression_rate
