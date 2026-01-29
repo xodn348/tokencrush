@@ -187,5 +187,74 @@ def serve(
     uvicorn.run("tokencrush.proxy:app", host=host, port=port, log_level="info")
 
 
+@app.command()
+def install():
+    """Install TokenCrush system-wide for all AI tools."""
+    from tokencrush import daemon
+    from tokencrush import shell_config
+
+    console.print("[bold]Installing TokenCrush...[/bold]\n")
+
+    with console.status("Starting proxy daemon..."):
+        if daemon.start():
+            console.print("[green]✓[/green] Proxy daemon started on port 8765")
+        else:
+            console.print("[red]✗[/red] Failed to start daemon")
+            raise typer.Exit(1)
+
+    with console.status("Configuring shell profiles..."):
+        profiles = shell_config.install_to_all_profiles()
+        for p in profiles:
+            console.print(f"[green]✓[/green] Configured {p}")
+
+    console.print("\n[bold green]Installation complete![/bold green]\n")
+    console.print("TokenCrush is now active for:")
+    console.print("  • Cursor")
+    console.print("  • Claude Code")
+    console.print("  • OpenCode")
+    console.print("  • Any OpenAI-compatible tool")
+    console.print("\n[dim]Restart your terminal or run: source ~/.zshrc[/dim]")
+
+
+@app.command()
+def uninstall():
+    """Uninstall TokenCrush system-wide configuration."""
+    from tokencrush import daemon
+    from tokencrush import shell_config
+
+    console.print("[bold]Uninstalling TokenCrush...[/bold]\n")
+
+    with console.status("Stopping proxy daemon..."):
+        daemon.stop()
+        console.print("[green]✓[/green] Proxy daemon stopped")
+
+    with console.status("Removing shell configuration..."):
+        profiles = shell_config.uninstall_from_all_profiles()
+        for p in profiles:
+            console.print(f"[green]✓[/green] Cleaned {p}")
+
+    console.print("\n[bold green]Uninstallation complete![/bold green]")
+    console.print("[dim]Restart your terminal to apply changes.[/dim]")
+
+
+@app.command("daemon-status")
+def daemon_status():
+    """Show TokenCrush daemon status."""
+    from tokencrush import daemon as daemon_module
+
+    info = daemon_module.status()
+
+    table = Table(title="TokenCrush Daemon Status")
+    table.add_column("Property", style="cyan")
+    table.add_column("Value", style="green")
+
+    table.add_row("Daemon Running", "Yes" if info["running"] else "No")
+    table.add_row("PID", str(info["pid"]) if info["pid"] else "-")
+    table.add_row("Port", str(info["port"]))
+    table.add_row("Proxy URL", info["url"])
+
+    console.print(table)
+
+
 if __name__ == "__main__":
     app()
