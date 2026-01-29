@@ -24,3 +24,25 @@ registry: Dict[str, InterceptorBase] = {}
 def register(name: str, interceptor: InterceptorBase) -> None:
     """Register an interceptor."""
     registry[name] = interceptor
+
+
+# Auto-import interceptors to register them
+try:
+    from tokencrush.interceptors import openai_interceptor
+except ImportError:
+    pass
+
+try:
+    from tokencrush.interceptors import anthropic_interceptor
+except ImportError:
+    pass
+
+try:
+    from tokencrush.interceptors import gemini_interceptor
+except ImportError:
+    pass
+
+try:
+    from tokencrush.interceptors import litellm_interceptor
+except ImportError:
+    pass
