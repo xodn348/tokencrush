@@ -1,168 +1,64 @@
 # TokenCrush
 
-> **One line. Zero config. 100% free LLM caching.**
-
-```python
-import tokencrush; tokencrush.enable()
-```
-
-That's it. All your OpenAI, Anthropic, Gemini, and LiteLLM calls are now cached.
-
----
-
-## Install
-
-```bash
-pip install tokencrush
-```
-
----
-
-## Usage
-
-### Zero-Config Mode (Recommended)
-
-```python
-import tokencrush
-tokencrush.enable()
-
-# Your existing code works unchanged
-from openai import OpenAI
-client = OpenAI()
-
-# First call: hits API (~2-6 seconds)
-response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "What is Python?"}]
-)
-
-# Second identical call: instant from cache (~0.02 seconds)
-response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "What is Python?"}]
-)
-
-# Disable when done
-tokencrush.disable()
-```
-
-**Result**: 251x faster. $0 API cost on cached requests.
-
-### Supported SDKs
-
-| SDK | Status |
-|-----|--------|
-| OpenAI | ✅ Supported |
-| Anthropic | ✅ Supported |
-| Google Gemini | ✅ Supported |
-| LiteLLM | ✅ Supported |
-
----
-
-## System-Wide Installation
-
-Make TokenCrush work automatically with **all AI tools**:
-
-```bash
-pip install tokencrush
-tokencrush install
-```
-
-That's it! Now these tools automatically use TokenCrush:
-- **Cursor**
-- **Claude Code**
-- **OpenCode**
-- Any OpenAI-compatible tool
-
-### What it does
-1. Starts a background proxy on port 8765
-2. Configures your shell to route LLM calls through the proxy
-3. All requests get cached + compressed automatically
-
-### Commands
-```bash
-tokencrush install        # Install system-wide
-tokencrush daemon-status  # Check proxy status
-tokencrush uninstall      # Remove system-wide config
-```
-
-### To remove
-```bash
-tokencrush uninstall
-```
-
----
+**LLM API cost optimizer** - Cache responses, compress prompts, save money.
 
 ## How It Works
 
-1. **Semantic Caching**: Uses FAISS + sentence-transformers to find similar previous queries
-2. **Local Storage**: Cache stored in `~/.cache/tokencrush/` (your machine only)
-3. **Transparent**: Your code doesn't change. Just `enable()` at the start.
-
----
-
-## CLI
-
-```bash
-# Interactive chat with caching
-tokencrush chat "Hello" --smart
-
-# Configure free API providers
-tokencrush config set gemini YOUR_KEY
-tokencrush config set groq YOUR_KEY
-tokencrush config set deepseek YOUR_KEY
-
-# View cache statistics
-tokencrush stats
+```
+Your App → TokenCrush Proxy → LLM API (OpenAI/Anthropic)
+              ↓
+         1. Check cache → Hit? Return instantly (FREE!)
+         2. Miss? Compress prompt → Forward to API
+         3. Cache response for next time
 ```
 
----
+**Result**: Same request = instant + free. New request = 30-50% fewer tokens.
 
-## Proxy Server
-
-Route all LLM calls through TokenCrush for automatic caching:
+## Quick Start
 
 ```bash
-# Start proxy
-tokencrush serve --port 8080
+# Install
+pip install tokencrush
 
-# Point your tools at the proxy
-export OPENAI_API_BASE=http://localhost:8080/v1
+# Enable system-wide (Cursor, Claude Code, OpenCode, etc.)
+tokencrush install
+
+# Done! All LLM calls now go through TokenCrush
 ```
 
-Works with Claude Code, Cursor, OpenCode, and any OpenAI-compatible client.
+## Commands
+
+```bash
+tokencrush install        # Start proxy + configure shell
+tokencrush daemon-status  # Check if running
+tokencrush uninstall      # Remove
+```
+
+## For Python Code
+
+```python
+import tokencrush
+tokencrush.enable(compress=True)
+
+# Your code unchanged - caching happens automatically
+from openai import OpenAI
+client = OpenAI()
+response = client.chat.completions.create(...)
+```
+
+## Supported
+
+- OpenAI API
+- Anthropic API (Claude)
+- Any OpenAI-compatible tool
+
+## How Much Does It Save?
+
+| Scenario | Cost |
+|----------|------|
+| Cache hit | $0 (instant) |
+| Cache miss | 30-50% less tokens |
 
 ---
 
-## Free API Providers
-
-| Provider | Rate Limit | Notes |
-|----------|------------|-------|
-| DeepSeek | Unlimited | Best for volume |
-| Groq | 30 RPM | Fast inference |
-| Gemini | 15 RPM | Not available in EU/EEA/UK |
-
-Auto-rotates when quota exceeded.
-
----
-
-## Requirements
-
-- Python 3.10+
-- ~500MB disk for embedding model (downloaded on first use)
-
----
-
-## License
-
-MIT. See [LICENSE](LICENSE).
-
----
-
-## Links
-
-- [GitHub](https://github.com/xodn348/tokencrush)
-- [Issues](https://github.com/xodn348/tokencrush/issues)
-- [LEGAL.md](LEGAL.md) - Terms and notices
-
-**Built with**: [FAISS](https://github.com/facebookresearch/faiss), [Sentence Transformers](https://www.sbert.net), [LiteLLM](https://github.com/BerriAI/litellm)
+MIT License

@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 import httpx
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import JSONResponse
 
 from tokencrush.cache import SemanticCache
 from tokencrush.compressor import TokenCompressor
@@ -22,23 +22,15 @@ app = FastAPI(
 )
 
 cache = SemanticCache()
-compressor = None  # Lazy initialization to avoid segfault on startup
+compressor = None
 
 
-def get_openai_target(request: Request) -> str:
-    """Get target OpenAI API URL."""
-    target = request.headers.get("X-TokenCrush-Target")
-    if target:
-        return target.rstrip("/")
-    return "https://api.openai.com"
-
-
-def get_anthropic_target(request: Request) -> str:
-    """Get target Anthropic API URL."""
-    target = request.headers.get("X-TokenCrush-Target")
-    if target:
-        return target.rstrip("/")
-    return "https://api.anthropic.com"
+def get_compressor():
+    """Lazy load compressor."""
+    global compressor
+    if compressor is None:
+        compressor = TokenCompressor()
+    return compressor
 
 
 def create_cache_key(messages: list, model: str = "") -> str:
@@ -46,55 +38,35 @@ def create_cache_key(messages: list, model: str = "") -> str:
     return json.dumps({"model": model, "messages": messages}, sort_keys=True)
 
 
-def extract_messages(body: Dict[str, Any]) -> list:
-    """Extract messages from request body."""
-    return body.get("messages", [])
-
-
-def get_compressor():
-    """Lazy load compressor to avoid segfault on startup."""
-    global compressor
-    if compressor is None:
-        compressor = TokenCompressor()
-    return compressor
-
-
-def compress_last_user_message(
-    messages: list, rate: float = 0.5, enable_compression: bool = True
-) -> tuple[list, Optional[float]]:
-    """Compress the last user message in the messages array."""
-    if not messages or not enable_compression:
+def compress_messages(messages: list, rate: float = 0.5) -> tuple[list, Optional[float]]:
+    """Compress user messages."""
+    if not messages:
         return messages, None
 
     for i in range(len(messages) - 1, -1, -1):
         if messages[i].get("role") == "user":
             content = messages[i].get("content", "")
-            # Handle string content
             if isinstance(content, str) and len(content) > 100:
                 try:
-                    comp = get_compressor()
-                    result = comp.compress(content, rate=rate)
+                    result = get_compressor().compress(content, rate=rate)
                     messages[i]["content"] = result.compressed_text
                     return messages, result.ratio
                 except Exception:
-                    return messages, None
-            # Handle list content (Anthropic format)
+                    pass
             elif isinstance(content, list):
                 for j, block in enumerate(content):
                     if block.get("type") == "text" and len(block.get("text", "")) > 100:
                         try:
-                            comp = get_compressor()
-                            result = comp.compress(block["text"], rate=rate)
+                            result = get_compressor().compress(block["text"], rate=rate)
                             messages[i]["content"][j]["text"] = result.compressed_text
                             return messages, result.ratio
                         except Exception:
-                            return messages, None
+                            pass
             break
-
     return messages, None
 
 
-async def forward_request(
+async def forward_to_api(
     target_url: str,
     path: str,
     method: str,
@@ -103,211 +75,151 @@ async def forward_request(
 ) -> httpx.Response:
     """Forward request to target API."""
     url = f"{target_url}{path}"
-
+    
     forward_headers = {
-        k: v
-        for k, v in headers.items()
-        if k.lower() not in ["host", "content-length", "x-tokencrush-target"]
+        k: v for k, v in headers.items()
+        if k.lower() not in ["host", "content-length", "transfer-encoding"]
     }
 
     async with httpx.AsyncClient(timeout=120.0) as client:
         if method == "GET":
-            response = await client.get(url, headers=forward_headers)
+            return await client.get(url, headers=forward_headers)
         elif method == "POST":
-            response = await client.post(url, headers=forward_headers, json=body)
+            return await client.post(url, headers=forward_headers, json=body)
         else:
-            raise HTTPException(status_code=405, detail="Method not allowed")
-
-        return response
+            return await client.request(method, url, headers=forward_headers, json=body)
 
 
 # ============== OpenAI Endpoints ==============
 
 @app.post("/v1/chat/completions")
-async def chat_completions(request: Request):
-    """OpenAI-compatible chat completions endpoint with caching and compression."""
-    try:
-        body = await request.json()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON body")
-
-    messages = extract_messages(body)
-    if not messages:
-        raise HTTPException(status_code=400, detail="No messages provided")
-
+async def openai_chat(request: Request):
+    """OpenAI chat completions with caching."""
+    body = await request.json()
+    messages = body.get("messages", [])
     model = body.get("model", "")
+    
+    # Check cache
     cache_key = create_cache_key(messages, model)
-    cached_response = cache.get(cache_key)
-
-    if cached_response:
-        try:
-            response_data = json.loads(cached_response)
-            logger.info("Cache HIT for OpenAI request")
-            return JSONResponse(
-                content=response_data,
-                headers={"x-tokencrush-cache": "hit"},
-            )
-        except Exception:
-            pass
-
-    enable_compression = body.pop("enable_compression", True)
-    compression_rate = body.pop("compression_rate", 0.5)
-    modified_messages, compression_ratio = compress_last_user_message(
-        messages.copy(), rate=compression_rate, enable_compression=enable_compression
+    cached = cache.get(cache_key)
+    if cached:
+        logger.info("OpenAI Cache HIT")
+        return JSONResponse(json.loads(cached), headers={"x-tokencrush-cache": "hit"})
+    
+    # Compress and forward
+    body["messages"], _ = compress_messages(messages.copy())
+    
+    response = await forward_to_api(
+        "https://api.openai.com",
+        "/v1/chat/completions",
+        "POST",
+        dict(request.headers),
+        body
     )
-
-    body["messages"] = modified_messages
-
-    target_url = get_openai_target(request)
-    logger.info(f"Forwarding OpenAI request to {target_url}")
-
-    try:
-        response = await forward_request(
-            target_url=target_url,
-            path="/v1/chat/completions",
-            method="POST",
-            headers=dict(request.headers),
-            body=body,
-        )
-    except httpx.TimeoutException:
-        raise HTTPException(status_code=504, detail="Gateway timeout")
-    except httpx.RequestError as e:
-        logger.error(f"Request error: {str(e)}")
-        raise HTTPException(status_code=502, detail=f"Bad gateway: {str(e)}")
-
-    if response.status_code != 200:
-        try:
-            error_content = response.json() if response.content else {"error": "Unknown error"}
-        except Exception:
-            error_content = {"error": response.text or "Unknown error"}
-        return JSONResponse(content=error_content, status_code=response.status_code)
-
-    try:
-        response_data = response.json()
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Invalid JSON from target API: {str(e)}")
-
-    cache.set(cache_key, json.dumps(response_data))
-    logger.info("Cache MISS - stored OpenAI response")
-
-    return JSONResponse(
-        content=response_data,
-        headers={"x-tokencrush-cache": "miss"},
-    )
+    
+    if response.status_code == 200:
+        data = response.json()
+        cache.set(cache_key, json.dumps(data))
+        logger.info("OpenAI Cache MISS - stored")
+        return JSONResponse(data, headers={"x-tokencrush-cache": "miss"})
+    
+    return JSONResponse(response.json(), status_code=response.status_code)
 
 
 @app.get("/v1/models")
-async def list_models(request: Request):
-    """Forward model listing to target API."""
-    target_url = get_openai_target(request)
-
-    try:
-        response = await forward_request(
-            target_url=target_url,
-            path="/v1/models",
-            method="GET",
-            headers=dict(request.headers),
-        )
-    except httpx.RequestError as e:
-        raise HTTPException(status_code=502, detail=f"Bad gateway: {str(e)}")
-
-    return JSONResponse(
-        content=response.json() if response.content else {"data": []},
-        status_code=response.status_code,
+async def openai_models(request: Request):
+    """Forward to OpenAI models endpoint."""
+    response = await forward_to_api(
+        "https://api.openai.com",
+        "/v1/models",
+        "GET",
+        dict(request.headers)
     )
+    return JSONResponse(response.json(), status_code=response.status_code)
 
 
 # ============== Anthropic Endpoints ==============
 
 @app.post("/v1/messages")
 async def anthropic_messages(request: Request):
-    """Anthropic-compatible messages endpoint with caching and compression."""
-    try:
-        body = await request.json()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON body")
-
-    messages = extract_messages(body)
-    if not messages:
-        raise HTTPException(status_code=400, detail="No messages provided")
-
+    """Anthropic messages with caching."""
+    body = await request.json()
+    messages = body.get("messages", [])
     model = body.get("model", "")
+    
+    # Check cache
     cache_key = create_cache_key(messages, model)
-    cached_response = cache.get(cache_key)
+    cached = cache.get(cache_key)
+    if cached:
+        logger.info("Anthropic Cache HIT")
+        return JSONResponse(json.loads(cached), headers={"x-tokencrush-cache": "hit"})
+    
+    # Compress and forward
+    body["messages"], _ = compress_messages(messages.copy())
+    
+    response = await forward_to_api(
+        "https://api.anthropic.com",
+        "/v1/messages",
+        "POST",
+        dict(request.headers),
+        body
+    )
+    
+    if response.status_code == 200:
+        data = response.json()
+        cache.set(cache_key, json.dumps(data))
+        logger.info("Anthropic Cache MISS - stored")
+        return JSONResponse(data, headers={"x-tokencrush-cache": "miss"})
+    
+    return JSONResponse(response.json(), status_code=response.status_code)
 
-    if cached_response:
+
+# Also handle without /v1/ prefix (some SDKs use this)
+@app.post("/messages")
+async def anthropic_messages_alt(request: Request):
+    """Anthropic messages (alternate path)."""
+    return await anthropic_messages(request)
+
+
+# ============== Catch-All for Unknown Endpoints ==============
+
+@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def catch_all(request: Request, path: str):
+    """Forward unknown requests to appropriate API."""
+    body = None
+    if request.method in ["POST", "PUT", "PATCH"]:
         try:
-            response_data = json.loads(cached_response)
-            logger.info("Cache HIT for Anthropic request")
-            return JSONResponse(
-                content=response_data,
-                headers={"x-tokencrush-cache": "hit"},
-            )
-        except Exception:
+            body = await request.json()
+        except:
             pass
-
-    # Compress messages
-    modified_messages, compression_ratio = compress_last_user_message(
-        messages.copy(), rate=0.5, enable_compression=True
+    
+    # Determine target based on headers or path
+    auth_header = request.headers.get("authorization", "")
+    anthropic_key = request.headers.get("x-api-key", "")
+    
+    if anthropic_key or "anthropic" in path.lower():
+        target = "https://api.anthropic.com"
+    else:
+        target = "https://api.openai.com"
+    
+    logger.info(f"Catch-all: {request.method} /{path} -> {target}")
+    
+    response = await forward_to_api(
+        target,
+        f"/{path}",
+        request.method,
+        dict(request.headers),
+        body
     )
-    body["messages"] = modified_messages
-
-    target_url = get_anthropic_target(request)
-    logger.info(f"Forwarding Anthropic request to {target_url}")
-
+    
     try:
-        response = await forward_request(
-            target_url=target_url,
-            path="/v1/messages",
-            method="POST",
-            headers=dict(request.headers),
-            body=body,
-        )
-    except httpx.TimeoutException:
-        raise HTTPException(status_code=504, detail="Gateway timeout")
-    except httpx.RequestError as e:
-        logger.error(f"Request error: {str(e)}")
-        raise HTTPException(status_code=502, detail=f"Bad gateway: {str(e)}")
-
-    if response.status_code != 200:
-        try:
-            error_content = response.json() if response.content else {"error": "Unknown error"}
-        except Exception:
-            error_content = {"error": response.text or "Unknown error"}
-        return JSONResponse(content=error_content, status_code=response.status_code)
-
-    try:
-        response_data = response.json()
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Invalid JSON from target API: {str(e)}")
-
-    cache.set(cache_key, json.dumps(response_data))
-    logger.info("Cache MISS - stored Anthropic response")
-
-    return JSONResponse(
-        content=response_data,
-        headers={"x-tokencrush-cache": "miss"},
-    )
+        return JSONResponse(response.json(), status_code=response.status_code)
+    except:
+        return JSONResponse({"raw": response.text}, status_code=response.status_code)
 
 
-# ============== Common Endpoints ==============
+# ============== Health ==============
 
 @app.get("/health")
 async def health():
-    """Health check endpoint."""
     return {"status": "healthy", "service": "tokencrush-proxy"}
-
-
-@app.get("/")
-async def root():
-    """Root endpoint with service information."""
-    return {
-        "service": "TokenCrush Proxy",
-        "version": "0.2.0",
-        "endpoints": {
-            "openai_chat": "/v1/chat/completions",
-            "openai_models": "/v1/models",
-            "anthropic_messages": "/v1/messages",
-            "health": "/health",
-        },
-    }
