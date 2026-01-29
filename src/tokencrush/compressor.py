@@ -1,4 +1,4 @@
-"""Token compression module using LLMLingua-2."""
+"""Token compression module using context-compressor."""
 
 from dataclasses import dataclass
 from typing import Optional
@@ -15,20 +15,13 @@ class CompressResult:
 
 
 class TokenCompressor:
-    """Compress prompts using LLMLingua-2 to reduce token usage."""
-
-    DEFAULT_MODEL = "microsoft/llmlingua-2-xlm-roberta-large-meetingbank"
+    """Compress prompts using context-compressor to reduce token usage."""
 
     def __init__(self, use_gpu: bool = False, model_name: Optional[str] = None):
         """Initialize the compressor."""
-        from llmlingua import PromptCompressor
+        from context_compressor import ContextCompressor
 
-        device_map = "cuda" if use_gpu else "cpu"
-        self._compressor = PromptCompressor(
-            model_name=model_name or self.DEFAULT_MODEL,
-            use_llmlingua2=True,
-            device_map=device_map,
-        )
+        self._compressor = ContextCompressor(default_strategy='extractive')
 
     def compress(self, text: str, rate: float = 0.5) -> CompressResult:
         """Compress the given text."""
@@ -40,13 +33,19 @@ class TokenCompressor:
                 ratio=1.0,
             )
 
-        result = self._compressor.compress_prompt([text], rate=rate)
-        original = int(result.get("origin_tokens", 0))
-        compressed = int(result.get("compressed_tokens", 0))
+        if len(text) < 100:
+            return CompressResult(
+                original_tokens=len(text.split()),
+                compressed_tokens=len(text.split()),
+                compressed_text=text,
+                ratio=1.0,
+            )
+
+        result = self._compressor.compress(text, target_ratio=rate)
 
         return CompressResult(
-            original_tokens=original,
-            compressed_tokens=compressed,
-            compressed_text=str(result.get("compressed_prompt", "")),
-            ratio=compressed / original if original > 0 else 1.0,
+            original_tokens=result.original_tokens,
+            compressed_tokens=result.compressed_tokens,
+            compressed_text=result.compressed_text,
+            ratio=result.actual_ratio,
         )
