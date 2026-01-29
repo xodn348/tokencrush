@@ -1,6 +1,6 @@
 """Multi-provider LLM wrapper using LiteLLM."""
 
-from typing import List, cast, Any
+from typing import Any
 from litellm import completion
 
 
@@ -13,7 +13,7 @@ class ProviderError(Exception):
 class LLMProvider:
     """Unified interface for multiple LLM providers via LiteLLM."""
 
-    MODEL_ALIASES = {
+    MODEL_ALIASES: dict[str, str] = {
         # OpenAI GPT-5 family (2025)
         "gpt-5.2": "gpt-5.2",
         "gpt-5.2-pro": "gpt-5.2-pro",
@@ -80,7 +80,7 @@ class LLMProvider:
             raise ProviderError(f"Failed to get response from {model}: {e}") from e
 
     @classmethod
-    def list_models(cls) -> List[str]:
+    def list_models(cls) -> list[str]:
         """List all supported model aliases."""
         return list(cls.MODEL_ALIASES.keys())
 

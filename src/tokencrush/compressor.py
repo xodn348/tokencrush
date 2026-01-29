@@ -1,7 +1,10 @@
 """Token compression module using context-compressor."""
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from context_compressor import ContextCompressor
 
 
 @dataclass
@@ -17,11 +20,13 @@ class CompressResult:
 class TokenCompressor:
     """Compress prompts using context-compressor to reduce token usage."""
 
-    def __init__(self, use_gpu: bool = False, model_name: Optional[str] = None):
+    _compressor: "ContextCompressor"
+
+    def __init__(self, use_gpu: bool = False, model_name: str | None = None) -> None:
         """Initialize the compressor."""
         from context_compressor import ContextCompressor
 
-        self._compressor = ContextCompressor(default_strategy='extractive')
+        self._compressor = ContextCompressor(default_strategy="extractive")
 
     def compress(self, text: str, rate: float = 0.5) -> CompressResult:
         """Compress the given text."""
