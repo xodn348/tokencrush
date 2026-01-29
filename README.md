@@ -43,7 +43,7 @@ export OPENAI_API_KEY=your-actual-api-key
 
 Now all LLM calls from your AI agent (OpenCode, Cursor, Claude Code, etc.) will:
 1. Check semantic cache (instant return if hit = FREE)
-2. Compress prompts with LLMLingua (30-50% token reduction)
+2. Compress prompts (30-50% token reduction via extractive compression)
 3. Forward to your configured LLM API
 4. Cache responses for future similar queries
 
