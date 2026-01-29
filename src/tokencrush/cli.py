@@ -170,5 +170,22 @@ def cache_stats():
     console.print(table)
 
 
+@app.command()
+def serve(
+    port: int = typer.Option(8080, "--port", "-p", help="Port to bind to"),
+    host: str = typer.Option("0.0.0.0", "--host", help="Host to bind to"),
+):
+    """Start OpenAI-compatible proxy server with caching and compression."""
+    import uvicorn
+
+    console.print(f"[green]Starting TokenCrush proxy on {host}:{port}[/green]")
+    console.print("[dim]Endpoints:[/dim]")
+    console.print(f"  [cyan]POST[/cyan] http://{host}:{port}/v1/chat/completions")
+    console.print(f"  [cyan]GET[/cyan]  http://{host}:{port}/v1/models")
+    console.print(f"  [cyan]GET[/cyan]  http://{host}:{port}/health")
+
+    uvicorn.run("tokencrush.proxy:app", host=host, port=port, log_level="info")
+
+
 if __name__ == "__main__":
     app()
