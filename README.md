@@ -59,6 +59,40 @@ tokencrush.disable()
 
 ---
 
+## System-Wide Installation
+
+Make TokenCrush work automatically with **all AI tools**:
+
+```bash
+pip install tokencrush
+tokencrush install
+```
+
+That's it! Now these tools automatically use TokenCrush:
+- **Cursor**
+- **Claude Code**
+- **OpenCode**
+- Any OpenAI-compatible tool
+
+### What it does
+1. Starts a background proxy on port 8765
+2. Configures your shell to route LLM calls through the proxy
+3. All requests get cached + compressed automatically
+
+### Commands
+```bash
+tokencrush install        # Install system-wide
+tokencrush daemon-status  # Check proxy status
+tokencrush uninstall      # Remove system-wide config
+```
+
+### To remove
+```bash
+tokencrush uninstall
+```
+
+---
+
 ## How It Works
 
 1. **Semantic Caching**: Uses FAISS + sentence-transformers to find similar previous queries

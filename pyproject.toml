@@ -1,6 +1,6 @@
 [project]
 name = "tokencrush"
-version = "2.1.0"
+version = "2.2.0"
 description = "100% FREE Open Source LLM Optimizer - Reduce API costs by 95-100% with semantic caching, local LLM, and free API routing"
 readme = "README.md"
 license = {text = "MIT"}
