@@ -11,7 +11,9 @@
 
 ---
 
-## For AI Agents
+## Quick Start
+
+Copy and paste this to your AI agent (Claude Code, Cursor, AmpCode, etc.):
 
 ```bash
 pip install tokencrush
@@ -22,24 +24,36 @@ tokencrush config set deepseek YOUR_KEY
 tokencrush stats
 ```
 
-```python
-from tokencrush import TokenCrush
-tc = TokenCrush()
-response = tc.chat("Your question")
-print(response.response)
-```
-
 ---
 
-## Quick Start
+## Proxy Server (Beta)
+
+Route ALL your AI agent LLM calls through TokenCrush for automatic caching and compression.
+
+### Usage
 
 ```bash
-pip install tokencrush
-brew install ollama && ollama serve && ollama pull deepseek-r1:8b  # optional
-tokencrush chat "Your question" --smart
+# Start proxy server
+tokencrush serve --port 8080
+
+# Configure your AI agent to use the proxy
+export OPENAI_API_BASE=http://localhost:8080/v1
+export OPENAI_API_KEY=your-actual-api-key
 ```
 
-Free API keys: [Gemini](https://aistudio.google.com/apikey) | [Groq](https://console.groq.com) | [DeepSeek](https://platform.deepseek.com)
+Now all LLM calls from your AI agent (OpenCode, Cursor, Claude Code, etc.) will:
+1. Check semantic cache (instant return if hit = FREE)
+2. Compress prompts with LLMLingua (30-50% token reduction)
+3. Forward to your configured LLM API
+4. Cache responses for future similar queries
+
+### Legal Notice
+
+- This proxy forwards requests to YOUR configured LLM API using YOUR API keys
+- You are responsible for compliance with your LLM provider's Terms of Service
+- Cached responses are stored locally on your machine (~/.cache/tokencrush/)
+- No data is sent to third parties
+- TokenCrush does NOT provide API keys or free LLM access
 
 ---
 
